@@ -1,6 +1,6 @@
 import speech_recognition as sr
 import csv
-
+import matplotlib.pyplot as plt 
 # crear nuevo CSV
 def transcrpicion_audio (path_audio: str)->str:
     r = sr.Recognizer()
@@ -74,7 +74,24 @@ def main()->None:
     for reclamo in datos_reclamos_nuevo:
         if reclamo[5] in robados_patentes:
             print(f'ALERTA, el auto con patente {reclamo[5]} tiene un pedido de caputra')
-            print(f'Su posibl eubicación es {reclamo[2]} en {reclamo[3]}, {reclamo[4]}')
+            print(f'Su posible ubicación es {reclamo[2]} en {reclamo[3]}, {reclamo[4]}')
+    
+    
+    meses: list = ["Enero", "Febrero", "Marzo", "Abril", 
+        "Mayo", "Junio", "Julio", "Agosto", "Septiembre",
+        "Octubre", "Noviembre", "Diciembre" ]
+    cantxmeses: list = []
+    for mes in range (1,13):
+        cantxmes: int = 0
+        for reclamo in datos_reclamos_nuevo:
+            if mes ==  int(reclamo[0][5:7]):
+                cantxmes += 1
+        cantxmeses.append(cantxmes)
+
+    fig, ax = plt.subplots()
+    ax.bar(meses, cantxmeses)
+    plt.show()
+
 
     
     
