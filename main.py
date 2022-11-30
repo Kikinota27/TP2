@@ -26,8 +26,59 @@ def leer_cvs()-> list:
             reclamos_datos.append(elemento)
     return reclamos_datos
 
-def geolocaizacion(cooredenadas: list)-> list:
-    pass
+def coordenadasADireccion(lat:str,long:str)->list:
+    """
+Pre: Requiere dos numeros flotante, el primero sera la longitud, el segundo la latitud.
+Post: Devuelve una lista con la direccion, la localidad, y la provincia
+"""
+    direccion: list = []
+    localidad: str = ''
+    provincia:str =''
+    localizador = Nominatim(user_agent="khasi@gmail.com")#Nominatim requiere si o si una identificacioin para limitar la cantidad de usos por usuario
+    ubicacion:str = str(localizador.reverse(lat+' , '+long))#Aca se guarda la direccion a la que hacen referencias las coordenadas
+    datos: list = ubicacion.split(',')#ubicacion es un str, con altura,calle,barrio,localidad,CP,provincia,pais
+    esnumero:bool = datos[0].isdigit()
+    #Dependiendo de si es provincia, o  capital o si es un lugar conocido o no, la cantidad de datos que posee ubicacion es mayor o menor que 9 elementos
+    if len(datos)>=9:
+        #Si posee mas de nueve elementos pertenece a CABA
+        if esnumero:
+            #Si el primer elemento es un numero es un lugar de caba aleatorio
+            aux=datos[1]
+            direccion.append(aux)
+            aux=datos[0]
+            direccion.append(aux)
+            localidad=datos[3]
+            provincia=datos[6]
+            direccion.append(aux)
+        else:
+            #De lo contrario es un lugar conocido de caba
+            aux=datos[2]
+            direccion.append(aux)
+            aux=datos[1]
+            direccion.append(aux)
+            localidad=datos[4]
+            provincia=datos[7]
+    elif len(datos)<=8:
+        #Pertenece a provincia
+        if esnumero:
+            #Si el primero es la altura de la calle es un lugar aleatorio de provincia
+            aux=datos[1]
+            direccion.append(aux)
+            aux=datos[0]
+            direccion.append(aux)
+            localidad=datos[3]
+            provincia=datos[5]
+        else:
+            #Es un lugar conocido de prov si posee el nombre o titulo por que la se lo conoce popularmente
+            aux=datos[2]
+            direccion.append(aux)
+            aux=datos[1]
+            direccion.append(aux)
+            localidad=datos[4]
+            provincia=datos[6]
+    direcc = ",".join(direccion) #convierto la direccion con formato nombre_de_calle,altura , en un str(para que no se modifique) 
+    ubicar: list = [direcc,localidad,provincia]
+    return ubicar
 
 def reconocimiento_patente(path_img: str)->str:
     pass
