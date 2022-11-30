@@ -2,10 +2,10 @@ import speech_recognition as sr
 import csv
 import matplotlib.pyplot as plt 
 # crear nuevo CSV
-def transcrpicion_audio (path_audio: str)->str:
+def transcrpicion_audio (ruta_audio: str)->str:
     r = sr.Recognizer()
     transcripcion: str = ""
-    with sr.AudioFile(path_audio) as source:
+    with sr.AudioFile(ruta_audio) as source:
         audio = r.record(source)
     try:
         transcripcion = r.recognize_google(audio, language = 'es')
