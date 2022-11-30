@@ -8,11 +8,13 @@ def transcrpicion_audio (path_audio: str)->str:
     with sr.AudioFile(path_audio) as source:
         audio = r.record(source)
     try:
-        transcripcion = r.recognize_google(audio)
+        transcripcion = r.recognize_google(audio, language = 'es')
+    except FileNotFoundError:
+        transcripcion="Reclamo sin audio"
     except sr.UnknownValueError:
-        transcripcion= "Google Speech Recognition could not understand audio"
+        transcripcion= "Google Speech Recognition no pudo entender el audio"
     except sr.RequestError as e:
-        transcripcion ="Could not request results from Google Speech Recognition service; {0}".format(e)
+        transcripcion ="No se pudieron solicitar los resultados de Google Speech Recognition service; {0}".format(e)
     return transcripcion
     
 def leer_cvs()-> list: 
@@ -76,7 +78,7 @@ def main()->None:
             print(f'ALERTA, el auto con patente {reclamo[5]} tiene un pedido de caputra')
             print(f'Su posible ubicación es {reclamo[2]} en {reclamo[3]}, {reclamo[4]}')
     
-    
+    print("Generando grafico de reclamos mensuales")
     meses: list = ["Enero", "Febrero", "Marzo", "Abril", 
         "Mayo", "Junio", "Julio", "Agosto", "Septiembre",
         "Octubre", "Noviembre", "Diciembre" ]
