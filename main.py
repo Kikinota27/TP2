@@ -1,8 +1,12 @@
 import speech_recognition as sr
 import csv
 import matplotlib.pyplot as plt
+from matplotlib.image import imread
 from geopy.geocoders import Nominatim
-from geopy.distance import geodesic       
+from geopy.distance import geodesic
+import os
+import folium
+import webbrowser
 # crear nuevo CSV
 def transcrpicion_audio (ruta_audio: str)->str:
     r = sr.Recognizer()
@@ -142,7 +146,50 @@ Post:  Es un procedimiento que imprime en pantalla como alerta los datos de toda
         ubicacion: list = ubicaciones[i]
         mostrarAlerta(patente,time,ubicacion)
 #mostrar foto y mapa
-
+def mostrarImg(ruta:str):
+    """
+Pre: Requiere la ruta de la img a mostrar
+Post: Es un procedimiento que muestra en pantalle una imagen
+"""
+    #archivo = 'prueba.jpg'
+    #directorio = os.getcwd()
+    #ruta = os.path.join(directorio, archivo)
+    img = mpimg.imread(ruta)
+    imgplot = plt.imshow(img)
+    plt.show()
+def mostrarMapa(coordenada:list,patente:str):
+    """
+Pre: Requiere las coordenadas a mostrar y una decripcion de una o dos palabrar sobre dicha coordenada
+Post: Traza un mapa, e inserta en el un puntero en la localizacion de las coordenadas ingresadas,luego abre dicho mapa en el navegador
+"""
+    ubicacion: list = [float(coordenada[0]),float(coordenada[1])]
+    mapa=folium.Map(location=ubicacion)
+    mapa.add_child(folium.Marker(location=ubicacion,popup=patente,icon=folium.Icon(color='green')))
+    mapa.save('mapa.html')
+    archivo = 'mapa.html'
+    directorio = os.getcwd()
+    ruta = os.path.join(directorio, archivo)#El archivo se crea automaticamente y se guarda en la misma carpeta del presente programa
+    webbrowser.open(ruta)
+def mostrarDatosPatente(archivo1:list,archivo2:list):
+    time: str = ''
+    tel:str = ''
+    ruta_foto: str = ''
+    coord: list = []
+    patente: str = input("Ingrese la pantente a consultar: ")
+    for line in archivo2:
+        if patente in line:
+            time = line[0]
+            tel = line[1]
+    for line in archivo1:
+        if time in line and tel in line:
+            ruta_foto = line[4]
+            coord = [line[2],line[3]]
+    print("Para el movil de patente: ",patente)
+    print("Se encuentrar asociados: ")
+    print("Su imagen: ")
+    mostrarImg(ruta_foto)
+    print("Su mapa: ")
+    mostrarMapa(coord,patente)
 #mostrar grafico
 
 def main()->None:
@@ -200,7 +247,8 @@ def main()->None:
         if reclamo[5] in robados_patentes:
             print(f'ALERTA, el auto con patente {reclamo[5]} tiene un pedido de caputra')
             print(f'Su posible ubicación es {reclamo[2]} en {reclamo[3]}, {reclamo[4]}')
-    
+    print("Ingresar una patente y obtener su imagen y ubicacion en un mapa")
+    mostrarDatosPatente(datos_reclamos,datos_reclamos_nuevo)#pendiente por comprobar que funciona
     print("Generando grafico de reclamos mensuales")
     meses: list = ["Enero", "Febrero", "Marzo", "Abril", 
         "Mayo", "Junio", "Julio", "Agosto", "Septiembre",
