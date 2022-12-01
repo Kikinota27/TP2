@@ -18,7 +18,7 @@ def transcrpicion_audio (ruta_audio: str)->str:
     except sr.RequestError as e:
         transcripcion ="No se pudieron solicitar los resultados de Google Speech Recognition service; {0}".format(e)
     return transcripcion
-def leerCsv(nom_arc:str,lista:list):
+def leerArchivo(nom_arc:str,lista:list):
     """
 Pre: Require el nombre del archivo como str y una lista vacia donde guardar los datos
 Post: Al ser un procedimiento no posee, guarda los datos leído del archivo en una lista vacía
@@ -98,11 +98,49 @@ Post:Devuelve un boleano con True si cumple las condicion de estar dentro del cu
     en_el_cuadrante: bool = division<=1.0
     return en_el_cuadrante
 #robados
-def leer_txt()-> list:
-    with open("robados.txt", "r") as tf:
-        robados_patentes: list = tf.read().split('\n') #arreglar ultimo item en blanco
-    return robados_patentes
-
+def compararDatos(datos1:list,datos2:list)->list:
+    """
+Pre: Requiere dos listas, la primera es una general, la segunda es especifica.
+Post: Devuelve una lista que posee los datos en comun que tiene la primera lista con la segunda.
+"""
+    elementos_en_comun:list = []
+    for x in range(len(datos1)):
+        if datos1[x][5] in datos2:
+            coincidentes = datos1[x][5]
+            elementos_en_comun.append(coincidentes)
+    return elementos_en_comun
+def mostrarAlerta(pat:str,tiempo:str,ubicacion:list):
+    """
+Pre: Requiete la patente como str, la fecha como str, y una lista con direccion, localidad, provincia
+Post: Imprime un cartel en la terminal en color rojo, con una alerta
+"""
+    c:str = "—"*77
+    print("\033[0;31m"+c+"\033[0;m")
+    print("\033[0;31m"+"ALERTA"+"\033[0;m")
+    print("El día: ",tiempo)
+    print("En: "+ubicacion[0]+', '+ubicacion[1]+', '+ubicacion[2])
+    print(f"Se denuncion un movil de patente {pat}, la cual posee un pedido de captura ")
+    print("\033[0;31m"+c+"\033[0;m")
+def infoAlerta(lista_robados:list,info_file:list):
+    """
+Pre: Requiere una lista con las patentes coincidentes con el pedido de captura, y requiere los datos procesados de las denuncias
+Post:  Es un procedimiento que imprime en pantalla como alerta los datos de todas la denucias correspondientes a una patente con pedido de captura 
+"""
+    fechas: list = []
+    ubicaciones: list = []
+    for i in range(len(info_file)):
+        for j in range(len(lista_robados)):
+            if info_file[i][5]==lista_robados[j]:
+                ubic: list = [info_file[i][2],info_file[i][3],info_file[i][4]]
+                unix= info_file[i][0].split(' ')
+                fecha = unix[0]
+                fechas.append(fecha)
+                ubicaciones.append(ubic)
+    for i in range(len(lista_robados)):
+        patente: str = lista_robados[i]
+        time: str = fechas[i]
+        ubicacion: list = ubicaciones[i]
+        mostrarAlerta(patente,time,ubicacion)
 #mostrar foto y mapa
 
 #mostrar grafico
@@ -110,8 +148,11 @@ def leer_txt()-> list:
 def main()->None:
     datos_reclamos: list = []
     datos_reclamos_nuevo: list = []
+    pedido_captura: list = []
     reclamos: str = 'reclamosad.csv'
-    leerCsv(reclamos,datos_reclamos)
+    captura: str = 'robados.txt'
+    leerArchivo(reclamos,datos_reclamos)
+    leerArchivo(captura,pedido_captura)
     river_loc: list = ['-34.545173623765045','-58.44980708914722']
     boca_loc:list = ['-34.63547846773916','-58.36471338729659']
     print("Creando nuevo listado")
@@ -150,6 +191,9 @@ def main()->None:
             cercano = dentroDelCuadrante(coord)#Aprovechando un bool ya definido
             if cercano:
                 print(f"Se realizó un reclamo para la patente el día {fecha} en el centro de CABA")#falta completar informacion de la patente
+    print("Alertas de patentes con pedidos de captura")
+    sospechosos: list = compararDatos(pedido_captura,datos_reclamos_nuevo) #Falta probar
+    infoAlerta(sospechosos,datos_reclamos_nuevo) #falta informacion para probar la funcion
     print("Buscando autos sospechosos")
     robados_patentes: list = leer_txt()
     for reclamo in datos_reclamos_nuevo:
