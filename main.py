@@ -1,6 +1,8 @@
 import speech_recognition as sr
 import csv
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+from geopy.geocoders import Nominatim
+from geopy.distance import geodesic       
 # crear nuevo CSV
 def transcrpicion_audio (ruta_audio: str)->str:
     r = sr.Recognizer()
@@ -16,70 +18,38 @@ def transcrpicion_audio (ruta_audio: str)->str:
     except sr.RequestError as e:
         transcripcion ="No se pudieron solicitar los resultados de Google Speech Recognition service; {0}".format(e)
     return transcripcion
-    
-def leer_cvs()-> list: 
-    reclamos_datos: list = []
-    with open("reclamos.csv", newline='', encoding="UTF-8") as reclamos:
-        csv_reader = csv.reader(reclamos, delimiter=';')
-        next(csv_reader)
-        for elemento in csv_reader:
-            reclamos_datos.append(elemento)
-    return reclamos_datos
-
-def coordenadasADireccion(lat:str,long:str)->list:
+def leerCsv(nom_arc:str,lista:list):
+    try:
+        file = open(nom_arc,'r',encoding = "UTF-8")
+        for linea in file:
+            registro = []
+            linea = linea.strip()
+            registro = linea.split(';')
+            lista.append(registro)
+        file.close()
+    except IOError:
+        print("Se producjo un error de entrada y salida del archivo")
+def coordenadasADireccion(lat:float,long:float)->list:
     """
-Pre: Requiere dos numeros flotante, el primero sera la longitud, el segundo la latitud.
+Pre: Requiere dos numero flotante, el primero sera la longitud, el segundo la latitud.
 Post: Devuelve una lista con la direccion, la localidad, y la provincia
 """
-    direccion: list = []
     localidad: str = ''
-    provincia:str =''
-    localizador = Nominatim(user_agent="khasi@gmail.com")#Nominatim requiere si o si una identificacioin para limitar la cantidad de usos por usuario
-    ubicacion:str = str(localizador.reverse(lat+' , '+long))#Aca se guarda la direccion a la que hacen referencias las coordenadas
-    datos: list = ubicacion.split(',')#ubicacion es un str, con altura,calle,barrio,localidad,CP,provincia,pais
-    esnumero:bool = datos[0].isdigit()
-    #Dependiendo de si es provincia, o  capital o si es un lugar conocido o no, la cantidad de datos que posee ubicacion es mayor o menor que 9 elementos
-    if len(datos)>=9:
-        #Si posee mas de nueve elementos pertenece a CABA
-        if esnumero:
-            #Si el primer elemento es un numero es un lugar de caba aleatorio
-            aux=datos[1]
-            direccion.append(aux)
-            aux=datos[0]
-            direccion.append(aux)
-            localidad=datos[3]
-            provincia=datos[6]
-            direccion.append(aux)
-        else:
-            #De lo contrario es un lugar conocido de caba
-            aux=datos[2]
-            direccion.append(aux)
-            aux=datos[1]
-            direccion.append(aux)
-            localidad=datos[4]
-            provincia=datos[7]
-    elif len(datos)<=8:
-        #Pertenece a provincia
-        if esnumero:
-            #Si el primero es la altura de la calle es un lugar aleatorio de provincia
-            aux=datos[1]
-            direccion.append(aux)
-            aux=datos[0]
-            direccion.append(aux)
-            localidad=datos[3]
-            provincia=datos[5]
-        else:
-            #Es un lugar conocido de prov si posee el nombre o titulo por que la se lo conoce popularmente
-            aux=datos[2]
-            direccion.append(aux)
-            aux=datos[1]
-            direccion.append(aux)
-            localidad=datos[4]
-            provincia=datos[6]
-    direcc = ",".join(direccion) #convierto la direccion con formato nombre_de_calle,altura , en un str(para que no se modifique) 
-    ubicar: list = [direcc,localidad,provincia]
-    return ubicar
-
+    localizador = Nominatim(user_agent="khasi@gmail.com")
+    ubicacion = localizador.reverse(str(lat)+' , '+str(long))
+    ubicar = ubicacion.address
+    ubicarl = ubicar.split(',')
+    calle: str = str(ubicarl[1])+','+str(ubicarl[0])
+    comunas: list = [' Comuna 1',' Comuna 2',' Comuna 3',' Comuna 4',' Comuna 5',' Comuna 6',' Comuna 8',' Comuna 9',' Comuna 10',' Comuna 11',' Comuna 12',' Comuna 13',' Comuna 14',' Comuna 15']
+    if ubicarl[4] in comunas: 
+        localidad = ubicarl[4]
+    elif ubicarl[5] in comunas:
+        localidad = ubicarl[5]
+    else:
+        print("La direccion no pertenece la CABA")
+    prov: str = 'CABA'
+    datos: list = [calle,localidad,prov]
+    return datos
 def reconocimiento_patente(path_img: str)->str:
     pass
     
@@ -89,10 +59,14 @@ def crear_cvs(reclamos_datos_nuevos: list)->None:
         csv_writer.writerow(["Timestamp", "Telefono", "Direccion", "Localidad", "Provincia", "Patente", "Descripcion texto", "Descripcion audio"])
         for reclamo in reclamos_datos_nuevos:
             csv_writer.writerow(reclamo)
-
-
-#Listar a 1km de river y boca
-
+def dentroDeLaDistancia(direcc1:list,direcc2:list,distan:int):
+    """
+Pre: ingresas dos direcciones en forma de lista con dos elementos string, y el radio un int
+Post: retorna un bool que indica si las direcciones poseen una distancia menor o igual a la indicada en el radio
+"""
+    dist = geodesic(direcc1,direcc2).km
+    esta_dentro_de_la_distancia: bool = dist<=distan
+    return esta_dentro_de_la_distancia
 #Listar centro
 
 #robados
@@ -106,22 +80,40 @@ def leer_txt()-> list:
 #mostrar grafico
 
 def main()->None:
-    datos_reclamos: list = leer_cvs()
+    datos_reclamos: list = []
     datos_reclamos_nuevo: list = []
-    
+    reclamos: str = 'reclamosad.csv'
+    leerCsv(reclamos,datos_reclamos)
+    river_loc: list = ['-34.545173623765045','-58.44980708914722']
+    boca_loc:list = ['-34.63547846773916','-58.36471338729659']
     print("Creando nuevo listado")
     for reclamo in datos_reclamos:
-        ubicacion: list = geolocaizacion(reclamo[2])#o [reclamo[2], reclamo[3]] //// (calle altura, localida, provincia)
-        patente: str = reconocimiento_patente(reclamo[3])# reclamo[4]
-        descripcion_audio: str = transcrpicion_audio(reclamo[4])# o reclamo[5] 
-        datos_reclamos_nuevo.append([reclamo[0],reclamo[1],ubicacion[0], ubicacion[1], ubicacion[3], patente, reclamo[5], descripcion_audio])
-    
+        # (Timestamp, Teléfono_celular, coord_latitud, coord_long, ruta_foto, descripción texto,ruta_audio)
+        if reclamo != datos_reclamos[0]:
+            ubicacion: list = coordenadasADireccion(reclamo[2],reclamo[3])
+            patente: str = reconocimiento_patente(reclamo[4])
+            descripcion_audio: str = transcrpicion_audio(reclamo[6])
+            datos_reclamos_nuevo.append([reclamo[0],reclamo[1],ubicacion[0], ubicacion[1], ubicacion[2], patente, reclamo[5], descripcion_audio])
+
     print("Listando reclamos a 1 Km. del estadio River Plate ")
-
+    for linea in datos_reclamos:
+        if linea != datos_reclamos[0]:
+            coord: list = [linea[2],linea[3]]
+            unix= linea[0].split(' ')
+            fecha = unix[0]
+            cercano: bool = dentroDeLaDistancia(river_loc,coord,1)
+            if cercano:
+                print(f"Se realizó un reclamo para la patente (ingresar pat) el día {fecha} en (ingresal loc)")
     print("Listando reclamos a 1 Km. del estadio Boca Juniors")
-
+    for linea in datos_reclamos:
+        if linea != datos_reclamos[0]:
+            coord = [linea[2],linea[3]]
+            unix= linea[0].split(' ')
+            fecha = unix[0]
+            cercano = dentroDeLaDistancia(boca_loc,coord,1)
+            if cercano:
+                print(f"Se realizó un reclamo para la patente el día {fecha} en")
     print("Listando reclamos en el centro de la ciudad")
-
     print("Buscando autos sospechosos")
     robados_patentes: list = leer_txt()
     for reclamo in datos_reclamos_nuevo:
@@ -144,10 +136,7 @@ def main()->None:
     fig, ax = plt.subplots()
     ax.bar(meses, cantxmeses)
     plt.show()
-
-
-    
-    
+main()
 
     
     
