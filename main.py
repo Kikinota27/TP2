@@ -19,6 +19,10 @@ def transcrpicion_audio (ruta_audio: str)->str:
         transcripcion ="No se pudieron solicitar los resultados de Google Speech Recognition service; {0}".format(e)
     return transcripcion
 def leerCsv(nom_arc:str,lista:list):
+    """
+Pre: Require el nombre del archivo como str y una lista vacia donde guardar los datos
+Post: Al ser un procedimiento no posee, guarda los datos leído del archivo en una lista vacía
+"""
     try:
         file = open(nom_arc,'r',encoding = "UTF-8")
         for linea in file:
@@ -68,7 +72,31 @@ Post: retorna un bool que indica si las direcciones poseen una distancia menor o
     esta_dentro_de_la_distancia: bool = dist<=distan
     return esta_dentro_de_la_distancia
 #Listar centro
-
+def dentroDelCuadrante(coord:list)->bool:
+    """
+Pre:Requiere un lista con dos elementos str primero es latitud y el segundo es longitud
+Post:Devuelve un boleano con True si cumple las condicion de estar dentro del cuadrante
+"""
+#Pequeña introduccion teorica -> https://acortar.link/FdUE6k
+    intersec1 = ['-34.59931087515444', '-58.39337992076712']
+    #Callao y Cordoba
+    intersec2 = ['-34.609349307168664', '-58.39216124478244']
+    #Rivadavia y Callao
+    intersec3 = ['-34.60798655424728', '-58.37018659584837']
+    #Rivadavia y Alem
+    intersec4 = ['-34.59814231545804', '-58.37084567449758']
+    #Cordoba y Alem
+    dist1 = geodesic(intersec1,coord).km
+    dist2 = geodesic(intersec2,coord).km
+    dist3 = geodesic(intersec3,coord).km
+    dist4 = geodesic(intersec4,coord).km
+    suma1=dist1*dist1
+    suma2=dist2*dist2
+    suma3=dist3*dist3
+    suma4=dist4*dist4
+    division = (suma1+suma3)/(suma2+suma4)
+    en_el_cuadrante: bool = division<=1.0
+    return en_el_cuadrante
 #robados
 def leer_txt()-> list:
     with open("robados.txt", "r") as tf:
@@ -103,7 +131,7 @@ def main()->None:
             fecha = unix[0]
             cercano: bool = dentroDeLaDistancia(river_loc,coord,1)
             if cercano:
-                print(f"Se realizó un reclamo para la patente (ingresar pat) el día {fecha} en (ingresal loc)")
+                print(f"Se realizó un reclamo para la patente (ingresar pat) el día {fecha} en (ingresal loc)")#falta completar info
     print("Listando reclamos a 1 Km. del estadio Boca Juniors")
     for linea in datos_reclamos:
         if linea != datos_reclamos[0]:
@@ -112,8 +140,16 @@ def main()->None:
             fecha = unix[0]
             cercano = dentroDeLaDistancia(boca_loc,coord,1)
             if cercano:
-                print(f"Se realizó un reclamo para la patente el día {fecha} en")
+                print(f"Se realizó un reclamo para la patente el día {fecha} en")#falta completar info
     print("Listando reclamos en el centro de la ciudad")
+    for linea in datos_reclamos:
+        if linea != datos_reclamos[0]:
+            coord = [linea[2],linea[3]]
+            unix= linea[0].split(' ')
+            fecha = unix[0]
+            cercano = dentroDelCuadrante(coord)#Aprovechando un bool ya definido
+            if cercano:
+                print(f"Se realizó un reclamo para la patente el día {fecha} en el centro de CABA")#falta completar informacion de la patente
     print("Buscando autos sospechosos")
     robados_patentes: list = leer_txt()
     for reclamo in datos_reclamos_nuevo:
