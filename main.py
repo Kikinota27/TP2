@@ -22,7 +22,7 @@ def transcrpicion_audio (ruta_audio: str)->str:
     except sr.RequestError as e:
         transcripcion ="No se pudieron solicitar los resultados de Google Speech Recognition service; {0}".format(e)
     return transcripcion
-def leerArchivo(nom_arc:str,lista:list):
+def leerArchivo(nom_arc:str,lista:list,separador:str):
     """
 Pre: Require el nombre del archivo como str y una lista vacia donde guardar los datos
 Post: Al ser un procedimiento no posee, guarda los datos leído del archivo en una lista vacía
@@ -32,7 +32,7 @@ Post: Al ser un procedimiento no posee, guarda los datos leído del archivo en u
         for linea in file:
             registro = []
             linea = linea.strip()
-            registro = linea.split(';')
+            registro = linea.split(separador)
             lista.append(registro)
         file.close()
     except IOError:
@@ -122,8 +122,8 @@ Post: Imprime un cartel en la terminal en color rojo, con una alerta
     print("\033[0;31m"+c+"\033[0;m")
     print("\033[0;31m"+"ALERTA"+"\033[0;m")
     print("El día: ",tiempo)
-    print("En: "+ubicacion[0]+', '+ubicacion[1]+', '+ubicacion[2])
-    print(f"Se denuncion un movil de patente {pat}, la cual posee un pedido de captura ")
+    print(f'Su ubicación es {ubicacion[0]} en {ubicacion[1]}, {ubicacion[2]}')
+    print(f"El movil con patente {pat},tiene un pedido de captura ")
     print("\033[0;31m"+c+"\033[0;m")
 def infoAlerta(lista_robados:list,info_file:list):
     """
@@ -198,8 +198,8 @@ def main()->None:
     pedido_captura: list = []
     reclamos: str = 'reclamosad.csv'
     captura: str = 'robados.txt'
-    leerArchivo(reclamos,datos_reclamos)
-    leerArchivo(captura,pedido_captura)
+    leerArchivo(reclamos,datos_reclamos,';')
+    leerArchivo(captura,pedido_captura,',')
     river_loc: list = ['-34.545173623765045','-58.44980708914722']
     boca_loc:list = ['-34.63547846773916','-58.36471338729659']
     print("Creando nuevo listado")
@@ -241,12 +241,6 @@ def main()->None:
     print("Alertas de patentes con pedidos de captura")
     sospechosos: list = compararDatos(pedido_captura,datos_reclamos_nuevo) #Falta probar
     infoAlerta(sospechosos,datos_reclamos_nuevo) #falta informacion para probar la funcion
-    print("Buscando autos sospechosos")
-    robados_patentes: list = leer_txt()
-    for reclamo in datos_reclamos_nuevo:
-        if reclamo[5] in robados_patentes:
-            print(f'ALERTA, el auto con patente {reclamo[5]} tiene un pedido de caputra')
-            print(f'Su posible ubicación es {reclamo[2]} en {reclamo[3]}, {reclamo[4]}')
     print("Ingresar una patente y obtener su imagen y ubicacion en un mapa")
     mostrarDatosPatente(datos_reclamos,datos_reclamos_nuevo)#pendiente por comprobar que funciona
     print("Generando grafico de reclamos mensuales")
