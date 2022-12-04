@@ -9,6 +9,10 @@ import folium
 import webbrowser
 # crear nuevo CSV
 def transcrpicion_audio (ruta_audio: str)->str:
+    """
+Pre: Require la ruta absoluta de un audio en formato wav
+Post: Devuelve la trancricion del audio como str
+"""
     r = sr.Recognizer()
     transcripcion: str = ""
     with sr.AudioFile(ruta_audio) as source:
@@ -24,7 +28,7 @@ def transcrpicion_audio (ruta_audio: str)->str:
     return transcripcion
 def leerArchivo(nom_arc:str,lista:list,separador:str):
     """
-Pre: Require el nombre del archivo como str y una lista vacia donde guardar los datos
+Pre: Require el nombre del archivo como str, una lista vacia donde guardar los datos y caracter de serparacion como str
 Post: Al ser un procedimiento no posee, guarda los datos leído del archivo en una lista vacía
 """
     try:
@@ -37,6 +41,16 @@ Post: Al ser un procedimiento no posee, guarda los datos leído del archivo en u
         file.close()
     except IOError:
         print("Se producjo un error de entrada y salida del archivo")
+def crear_csv(reclamos_datos_nuevos: list)->None:
+ """
+Pre: Require un lista con los datos de los reclamos ya procesados
+Post: Al ser un procedimiento no posee, crea un archivo csv con eso datos.
+"""
+    with open("reclamos_nuevo.csv", 'w', newline='', encoding="UTF-8") as reclamos:
+        csv_writer = csv.writer(reclamos, delimiter=',', quotechar='"', quoting= csv.QUOTE_NONNUMERIC)
+        csv_writer.writerow(["Timestamp", "Telefono", "Direccion", "Localidad", "Provincia", "Patente", "Descripcion texto", "Descripcion audio"])
+        for reclamo in reclamos_datos_nuevos:
+            csv_writer.writerow(reclamo)
 def coordenadasADireccion(lat:float,long:float)->list:
     """
 Pre: Requiere dos numero flotante, el primero sera la longitud, el segundo la latitud.
@@ -61,12 +75,6 @@ Post: Devuelve una lista con la direccion, la localidad, y la provincia
 def reconocimiento_patente(path_img: str)->str:
     pass
     
-def crear_cvs(reclamos_datos_nuevos: list)->None:
-    with open("reclamos_nuevo.csv", 'w', newline='', encoding="UTF-8") as reclamos:
-        csv_writer = csv.writer(reclamos, delimiter=',', quotechar='"', quoting= csv.QUOTE_NONNUMERIC)
-        csv_writer.writerow(["Timestamp", "Telefono", "Direccion", "Localidad", "Provincia", "Patente", "Descripcion texto", "Descripcion audio"])
-        for reclamo in reclamos_datos_nuevos:
-            csv_writer.writerow(reclamo)
 def dentroDeLaDistancia(direcc1:list,direcc2:list,distan:int):
     """
 Pre: ingresas dos direcciones en forma de lista con dos elementos string, y el radio un int
@@ -190,27 +198,31 @@ def mostrarDatosPatente(archivo1:list,archivo2:list):
     mostrarImg(ruta_foto)
     print("Su mapa: ")
     mostrarMapa(coord,patente)
-#mostrar grafico
 
 def main()->None:
     datos_reclamos: list = []
     datos_reclamos_nuevo: list = []
     pedido_captura: list = []
-    reclamos: str = 'reclamosad.csv'
-    captura: str = 'robados.txt'
+    RECLAMOS: str = 'reclamosad.csv'
+    CAPTURA: str = 'robados.txt'
     leerArchivo(reclamos,datos_reclamos,';')
-    leerArchivo(captura,pedido_captura,',')
-    river_loc: list = ['-34.545173623765045','-58.44980708914722']
-    boca_loc:list = ['-34.63547846773916','-58.36471338729659']
+    leerArchivo(captura,pedido_captura,'\n')
+    RIVER_LOC: list = ['-34.545173623765045','-58.44980708914722']
+    BOCA_LOC:list = ['-34.63547846773916','-58.36471338729659']
     print("Creando nuevo listado")
+    MESES: list = ["Enero", "Febrero", "Marzo", "Abril", 
+        "Mayo", "Junio", "Julio", "Agosto", "Septiembre",
+        "Octubre", "Noviembre", "Diciembre" ]
+    print("Inicio de programa")
+    print("Prosesado datos y generando nuevo archivo fortmato csv")
     for reclamo in datos_reclamos:
         # (Timestamp, Teléfono_celular, coord_latitud, coord_long, ruta_foto, descripción texto,ruta_audio)
         if reclamo != datos_reclamos[0]:
             ubicacion: list = coordenadasADireccion(reclamo[2],reclamo[3])
-            patente: str = reconocimiento_patente(reclamo[4])
-            descripcion_audio: str = transcrpicion_audio(reclamo[6])
+            patente: str = reconocimiento_patente(os.path.abspath(reclamo[4]))ruta_relativa
+            descripcion_audio: str = transcrpicion_audio(os.path.abspath(reclamo[6]))
             datos_reclamos_nuevo.append([reclamo[0],reclamo[1],ubicacion[0], ubicacion[1], ubicacion[2], patente, reclamo[5], descripcion_audio])
-
+    crear_csv(datos_reclamos_nuevo)
     print("Listando reclamos a 1 Km. del estadio River Plate ")
     for linea in datos_reclamos:
         if linea != datos_reclamos[0]:
@@ -254,7 +266,6 @@ def main()->None:
             if mes ==  int(reclamo[0][5:7]):
                 cantxmes += 1
         cantxmeses.append(cantxmes)
-
     fig, ax = plt.subplots()
     ax.bar(meses, cantxmeses)
     plt.show()
