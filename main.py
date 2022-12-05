@@ -302,37 +302,40 @@ def main()->None:
             print(reclamo)
     crear_csv(datos_reclamos_nuevo)
     print("Listando reclamos a 1 Km. del estadio River Plate ")
-
-    for linea in datos_reclamos:
+    for i in range(len(datos_reclamos)):
+        linea: list = datos_reclamos[0]
         if linea != datos_reclamos[0]:
             coord: list = [linea[2],linea[3]]
-            unix= linea[0].split(' ')
-            fecha = unix[0]
+            unix: list = linea[0].split(' ')
+            fecha:str = unix[0]
+            direcc: str = datos_reclamos_nuevo[i][2]
+            prov: str = datos_reclamos_nuevo[i][4]
             cercano: bool = dentroDeLaDistancia(RIVER_LOC,coord,1)
             if cercano:
-                print(f"Se realizó un reclamo para la patente (ingresar pat) el día {fecha} en (ingresal loc)") #falta completar info
-
+                print(f"Se realizó un reclamo para la patente {datos_reclamos_nuevo[i][5]} el día {fecha} en {direcc},{prov}")
     print("Listando reclamos a 1 Km. del estadio Boca Juniors")
-
-    for linea in datos_reclamos:
+    for i in range(len(datos_reclamos)):
+        linea = datos_reclamos[0]
         if linea != datos_reclamos[0]:
             coord = [linea[2],linea[3]]
             unix= linea[0].split(' ')
             fecha = unix[0]
+            direcc = datos_reclamos_nuevo[i][2]
+            prov = datos_reclamos_nuevo[i][4]
             cercano = dentroDeLaDistancia(BOCA_LOC,coord,1)
             if cercano:
-                print(f"Se realizó un reclamo para la patente el día {fecha} en")#falta completar info
-
+                print(f"Se realizó un reclamo para la patente {datos_reclamos_nuevo[i][5]} el día {fecha} en {direcc},{prov}")
     print("Listando reclamos en el centro de la ciudad")
 
-    for linea in datos_reclamos:
+    for i in range(len(datos_reclamos)):
+        linea = datos_reclamos[i]
         if linea != datos_reclamos[0]:
             coord = [linea[2],linea[3]]
             unix= linea[0].split(' ')
             fecha = unix[0]
-            cercano = dentroDelCuadrante(coord)#Aprovechando un bool ya definido
-            if cercano:
-                print(f"Se realizó un reclamo para la patente el día {fecha} en el centro de CABA")#falta completar informacion de la patente
+            cuadrante: bool = dentroDelCuadrante(coord)
+            if cuadrante:
+                print(f"Se realizó un reclamo para la patente{datos_reclamos_nuevo[i][5]} el día {fecha} en el centro de CABA")
 
     print("Alertas de patentes con pedidos de captura")
     sospechosos: list = compararDatos(pedido_captura,datos_reclamos_nuevo) #Falta probar
