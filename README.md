@@ -22,3 +22,8 @@
   * pip install numpy
 * Pytesseract
   * pip install pytesseract
+##### Librerias para la geolocalización
+* Geopy
+  * pip install geopy
+* Folium
+  * pip install folium
