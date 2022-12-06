@@ -4,7 +4,7 @@
 ### Integrantes
 * Kiara Pisera - 110092
 * Nicolás Condoluci - 108511
-* nombre - padron
+* Keren Hasi  - 110218
 #### Instalaciones Requeridas
 * Matplotlib
   * pip install -U matplotlib
@@ -22,3 +22,8 @@
   * pip install numpy
 * Pytesseract
   * pip install pytesseract
+##### Librerias para la geolocalización
+* Geopy
+  * pip install geopy
+* Folium
+  * pip install folium
