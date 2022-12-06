@@ -12,3 +12,13 @@
   * pip install PyAudio
 * SpeechRecognition
   * pip install SpeechRecognition
+### Librerías para la detección de patentes
+* OpenCV 
+  * pip install opencv-python
+* Imutils
+  * pip install imutils
+* Numpy
+  * pip install numpy
+* Pytesseract
+  * pip install pytesseract
+
