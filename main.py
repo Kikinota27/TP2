@@ -76,11 +76,7 @@ def detectar_patente(ruta_img: str)-> str:
     print("El número de patente detectado es: ",text)
     img = cv2.resize(img,(500,300))
     Cropped = cv2.resize(Cropped,(400,200))
-    # cv2.imshow('car',img)
-    # cv2.imshow('Cropped',Cropped)
-
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+ 
 
     return text
 
@@ -109,9 +105,9 @@ def leerArchivo(nom_arc:str,separador:str)->list:
     Pre: Require el nombre del archivo como str y el caracter de serparacion como str
     Post: Al ser un procedimiento no posee, guarda los datos leído del archivo en una lista vacía
     """
+    lista: list = list()
     try:
         file = open(nom_arc,'r',encoding = "UTF-8")
-        lista: list = list()
 
         for linea in file:
             registro = []
@@ -121,7 +117,7 @@ def leerArchivo(nom_arc:str,separador:str)->list:
             
         file.close()
     except IOError:
-        print("Se producjo un error de entrada y salida del archivo")
+        print("Se produjo un error de entrada y salida del archivo")
     return lista
 
 def crear_csv(reclamos_datos_nuevos: list)->None:
@@ -204,11 +200,12 @@ def compararDatos(datos1:list,datos2:list)->list:
     Post: Devuelve una lista que posee los datos en comun que tiene la primera lista con la segunda.
     """
     elementos_en_comun:list = []
-
-    for x in range(len(datos2)):
-        if datos2[x][5] in datos1:
-            coincidentes = datos2[x][5]
-            elementos_en_comun.append(coincidentes)
+    for i in range(len(datos2)):
+        
+        for j in range(len(datos1)):
+            if datos2[i][5] == datos1[j][0]:
+                coincidentes = datos2[i][5]
+                elementos_en_comun.append(coincidentes)
 
     return elementos_en_comun
 
