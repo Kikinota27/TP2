@@ -22,6 +22,7 @@
   * pip install numpy
 * Pytesseract
   * pip install pytesseract
+  * Link de descarga del ejecutable Tesseract OCR: https://github.com/UB-Mannheim/tesseract/wiki
 ##### Librerias para la geolocalización
 * Geopy
   * pip install geopy
