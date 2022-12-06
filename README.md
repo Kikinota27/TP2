@@ -3,7 +3,7 @@
 ### Descripcion(le ponemos?)
 ### Integrantes
 * Kiara Pisera - 110092
-* nombre - padron
+* Nicolás Condoluci - 108511
 * nombre - padron
 #### Instalaciones Requeridas:
 * Matplotlib
