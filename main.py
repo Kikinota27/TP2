@@ -237,7 +237,7 @@ def listarReclamosCentro(datos_reclamos: list, datos_reclamos_nuevo: list)-> Non
             cuadrante: bool = dentroDelCuadrante(coord)
 
             if cuadrante:
-                print(f"Se realizó un reclamo para la patente{datos_reclamos_nuevo[i][5]} el día {fecha} en el centro de CABA")
+                print(f"Se realizó un reclamo para la patente {datos_reclamos_nuevo[i][5]} el día {fecha} en el centro de CABA")
 
 # Mostrar resultados en pantalla
 def mostrarAlerta(pat:str,tiempo:str,ubicacion:list):
