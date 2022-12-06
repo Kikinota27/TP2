@@ -1,6 +1,6 @@
 # TP2
 ## Algoritmos y programacion I - FIUBA - Costas
-### Descripcion(le ponemos?)
+
 ### Integrantes
 * Kiara Pisera - 110092
 * Nicolás Condoluci - 108511
