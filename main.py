@@ -29,9 +29,9 @@ def detectar_patente(ruta_img: str)-> str:
     """ Pre: requiere la ruta absoluta de la imágen a analizar como argumento
         post: devuelve el número de patente en formato str
     """
-
+    # Optimizacion de imagen para detectar patente
     img = cv2.imread(ruta_img,cv2.IMREAD_COLOR)
-    img = cv2.resize(img, (600,400))
+    # img = cv2.resize(img, (600,400))
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
     gray = cv2.bilateralFilter(gray, 13, 15, 15) 
 
@@ -61,6 +61,7 @@ def detectar_patente(ruta_img: str)-> str:
     if detected == 1:
         cv2.drawContours(img, [screenCnt], -1, (0, 0, 255), 3)
 
+    # Segmentación de caracteres
     mask = np.zeros(gray.shape,np.uint8)
     new_image = cv2.drawContours(mask,[screenCnt],0,255,-1,)
     new_image = cv2.bitwise_and(img,img,mask=mask)
@@ -69,9 +70,9 @@ def detectar_patente(ruta_img: str)-> str:
     (topx, topy) = (np.min(x), np.min(y))
     (bottomx, bottomy) = (np.max(x), np.max(y))
     Cropped = gray[topx:bottomx+1, topy:bottomy+1]
-
+    
+    # Análisis de caracteres segmentados
     text = pytesseract.image_to_string(Cropped, config='--psm 11')
-    print("programming_fever's License Plate Recognition\n")
     print("El número de patente detectado es: ",text)
     img = cv2.resize(img,(500,300))
     Cropped = cv2.resize(Cropped,(400,200))
@@ -83,7 +84,6 @@ def detectar_patente(ruta_img: str)-> str:
 
     return text
 
-
 def transcrpicion_audio(ruta_audio: str)->str:
     """
     Pre: Require la ruta absoluta de un audio en formato wav
@@ -91,17 +91,16 @@ def transcrpicion_audio(ruta_audio: str)->str:
     """
     r = sr.Recognizer()
     transcripcion: str = ""
-    with sr.AudioFile(ruta_audio) as source:
-        audio = r.record(source)
     try:
+        with sr.AudioFile(ruta_audio) as source:
+            audio = r.record(source)
         transcripcion = r.recognize_google(audio, language = 'es')
     except FileNotFoundError:
         transcripcion="Reclamo sin audio"
     except sr.UnknownValueError:
         transcripcion= "Google Speech Recognition no pudo entender el audio"
     except sr.RequestError as e:
-        transcripcion ="No se pudieron solicitar los resultados de Google Speech Recognition service; {0}".format(e)
-
+        transcripcion ="No se pudieron solicitar los resultados de Google Speech Recognition service; {0}".format
     return transcripcion
 
 # Archivos
@@ -150,15 +149,16 @@ def coordenadasADireccion(lat:float,long:float)->list:
     ubicarl = ubicar.split(',')
     calle: str = str(ubicarl[1])+','+str(ubicarl[0])
     comunas: list = [' Comuna 1',' Comuna 2',' Comuna 3',' Comuna 4',' Comuna 5',' Comuna 6',' Comuna 8',' Comuna 9',' Comuna 10',' Comuna 11',' Comuna 12',' Comuna 13',' Comuna 14',' Comuna 15']
-    
+    prov: str = ""
     if ubicarl[4] in comunas: 
         localidad = ubicarl[4]
+        prov = 'CABA'
     elif ubicarl[5] in comunas:
         localidad = ubicarl[5]
+        prov = 'CABA'
     else:
-        print("La direccion no pertenece la CABA")
+        prov = "Fuera de CABA"
 
-    prov: str = 'CABA'
     datos: list = [calle,localidad,prov]
 
     return datos
@@ -211,6 +211,33 @@ def compararDatos(datos1:list,datos2:list)->list:
             elementos_en_comun.append(coincidentes)
 
     return elementos_en_comun
+
+def listarReclamos(datos_reclamos: list, datos_reclamos_nuevo: list, locacion: str)->None:
+    for i in range(len(datos_reclamos) - 1):
+        linea: list = datos_reclamos[i]
+
+        if linea != datos_reclamos[0]:
+            coord: list = [linea[2],linea[3]]
+            unix: list = linea[0].split(' ')
+            fecha:str = unix[0]
+            direcc: str = datos_reclamos_nuevo[i][2]
+            prov: str = datos_reclamos_nuevo[i][4]
+            cercano: bool = dentroDeLaDistancia(locacion,coord,1)
+            if cercano:
+                print(f"Se realizó un reclamo para la patente {datos_reclamos_nuevo[i][5]} el día {fecha} en {direcc},{prov}")
+
+def listarReclamosCentro(datos_reclamos: list, datos_reclamos_nuevo: list)-> None:
+    for i in range(len(datos_reclamos)):
+        linea = datos_reclamos[i]
+
+        if linea != datos_reclamos[0]:
+            coord = [linea[2],linea[3]]
+            unix= linea[0].split(' ')
+            fecha = unix[0]
+            cuadrante: bool = dentroDelCuadrante(coord)
+
+            if cuadrante:
+                print(f"Se realizó un reclamo para la patente{datos_reclamos_nuevo[i][5]} el día {fecha} en el centro de CABA")
 
 # Mostrar resultados en pantalla
 def mostrarAlerta(pat:str,tiempo:str,ubicacion:list):
@@ -265,8 +292,15 @@ def mostrarMapa(coordenada:list,patente:str):
     Pre: Requiere las coordenadas a mostrar y una decripcion de una o dos palabrar sobre dicha coordenada
     Post: Traza un mapa, e inserta en el un puntero en la localizacion de las coordenadas ingresadas,luego abre dicho mapa en el navegador
     """
+    print("Entrando a MOSTRAR MAPA")
     ubicacion: list = [float(coordenada[0]),float(coordenada[1])]
     mapa=folium.Map(location=ubicacion)
+    mapa.add_child(folium.Marker(location=ubicacion,popup=patente,icon=folium.Icon(color='green')))
+    mapa.save('mapa.html')
+    archivo = 'mapa.html'
+    directorio = os.getcwd()
+    ruta = os.path.join(directorio, archivo) # El archivo se crea automaticamente y se guarda en la misma carpeta del presente programa
+    webbrowser.open(ruta)
 
 def mostrarDatosPatente(datos_reclamos:list, datos_reclamos_nuevo:list):
     time: str = ''
@@ -325,53 +359,16 @@ def main()->None:
             patente: str = detectar_patente(os.path.abspath(reclamo[4]))
             descripcion_audio: str = transcrpicion_audio(os.path.abspath(reclamo[6]))
             datos_reclamos_nuevo.append([reclamo[0],reclamo[1],ubicacion[0], ubicacion[1], ubicacion[2], patente.rstrip(), reclamo[5], descripcion_audio])
-    
     crear_csv(datos_reclamos_nuevo)
+
     print("Listando reclamos a 1 Km. del estadio River Plate ")
-
-    for i in range(len(datos_reclamos)):
-        linea: list = datos_reclamos[0]
-
-        if linea != datos_reclamos[0]:
-            coord: list = [linea[2],linea[3]]
-            unix: list = linea[0].split(' ')
-            fecha:str = unix[0]
-            direcc: str = datos_reclamos_nuevo[i][2]
-            prov: str = datos_reclamos_nuevo[i][4]
-            cercano: bool = dentroDeLaDistancia(RIVER_LOC,coord,1)
-    
-            if cercano:
-                print(f"Se realizó un reclamo para la patente {datos_reclamos_nuevo[i][5]} el día {fecha} en {direcc},{prov}")
+    listarReclamos(datos_reclamos, datos_reclamos_nuevo, RIVER_LOC)
 
     print("Listando reclamos a 1 Km. del estadio Boca Juniors")
-
-    for i in range(len(datos_reclamos)):
-        linea = datos_reclamos[0]
-
-        if linea != datos_reclamos[0]:
-            coord = [linea[2],linea[3]]
-            unix= linea[0].split(' ')
-            fecha = unix[0]
-            direcc = datos_reclamos_nuevo[i][2]
-            prov = datos_reclamos_nuevo[i][4]
-            cercano = dentroDeLaDistancia(BOCA_LOC,coord,1)
-
-            if cercano:
-                print(f"Se realizó un reclamo para la patente {datos_reclamos_nuevo[i][5]} el día {fecha} en {direcc},{prov}")
+    listarReclamos(datos_reclamos, datos_reclamos_nuevo, BOCA_LOC)
 
     print("Listando reclamos en el centro de la ciudad")
-
-    for i in range(len(datos_reclamos)):
-        linea = datos_reclamos[i]
-
-        if linea != datos_reclamos[0]:
-            coord = [linea[2],linea[3]]
-            unix= linea[0].split(' ')
-            fecha = unix[0]
-            cuadrante: bool = dentroDelCuadrante(coord)
-
-            if cuadrante:
-                print(f"Se realizó un reclamo para la patente{datos_reclamos_nuevo[i][5]} el día {fecha} en el centro de CABA")
+    listarReclamosCentro(datos_reclamos, datos_reclamos_nuevo)
 
     print("Alertas de patentes con pedidos de captura")
     sospechosos: list = compararDatos(pedido_captura,datos_reclamos_nuevo) 
@@ -386,4 +383,6 @@ def main()->None:
 main()
 
     
+    
+
     
