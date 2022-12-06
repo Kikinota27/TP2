@@ -268,25 +268,26 @@ def mostrarMapa(coordenada:list,patente:str):
     ubicacion: list = [float(coordenada[0]),float(coordenada[1])]
     mapa=folium.Map(location=ubicacion)
 
-def mostrarDatosPatente(archivo1:list,archivo2:list):
+def mostrarDatosPatente(datos_reclamos:list, datos_reclamos_nuevo:list):
     time: str = ''
     tel:str = ''
     ruta_foto: str = ''
     coord: list = []
     patente: str = input("Ingrese la pantente a consultar: ")
 
-    for line in archivo2:
+    for line in datos_reclamos_nuevo:
         if patente in line:
             time = line[0]
             tel = line[1]
 
-    for line in archivo1:
+    for line in datos_reclamos:
         if time in line and tel in line:
             ruta_foto = line[4]
             coord = [line[2],line[3]]
+    
 
     print("Para el movil de patente: ",patente)
-    print("Se encuentrar asociados: ")
+    print("Se encuentra asociado: ")
     print("Su imagen: ")
     mostrarImg(ruta_foto)
     print("Su mapa: ")
@@ -323,7 +324,7 @@ def main()->None:
             ubicacion: list = coordenadasADireccion(reclamo[2],reclamo[3])
             patente: str = detectar_patente(os.path.abspath(reclamo[4]))
             descripcion_audio: str = transcrpicion_audio(os.path.abspath(reclamo[6]))
-            datos_reclamos_nuevo.append([reclamo[0],reclamo[1],ubicacion[0], ubicacion[1], ubicacion[2], patente, reclamo[5], descripcion_audio])
+            datos_reclamos_nuevo.append([reclamo[0],reclamo[1],ubicacion[0], ubicacion[1], ubicacion[2], patente.rstrip(), reclamo[5], descripcion_audio])
     
     crear_csv(datos_reclamos_nuevo)
     print("Listando reclamos a 1 Km. del estadio River Plate ")
