@@ -8,9 +8,9 @@ Timestamp;Teléfono_celular;coord_latitud;coord_long;ruta_foto;descripción_text
 2022-10-05 13:40:35.325987;541135651017;-34.62489495547531;-58.37358839105425;fotos\elefante.jpg;me canse de inventar mensajes;audios\A1.wav
 2022-10-05 16:10:23.584126;541145497503;-34.62968240234533;-58.37287389783421;fotos\raqueta.jpeg;AHHHHHHHHH!";audios\A1.wav
 2022-10-05 18:25:33.415263;541194161303;-34.61926725247366;-58.38420371889474;fotos\vaca.jpg;hay un auto estacionado en la salida de mi negocio y me tapa el acceso";audios\A1.wav
-2022-07-09 21:20:55.584213;541160208932;-34.62380304294365;-58.37358839105425;fotos\auto4c.jpg;este auto esta cometiendo una infraccion;audios\A1.wav
-2022-07-21 14:35:21.451236;541151750706;-34.61428904131994;-58.38384830742188;fotos\auto4c.jpg;hay un auto tapando la entrada de mi garage;audios\A1.wav
-2022-11-22 17:20:25.678941;541155385801;-34.606624442426885;-58.37891304304173;fotos\auto4c.jpg;este auto esta otra vez(!!!) estacionado en el cordon amarillo";audios\A1.wav
+2022-07-09 21:20:55.584213;541160208932;-34.62380304294365;-58.37358839105425;fotos\N1.jpg;este auto esta cometiendo una infraccion;audios\A1.wav
+2022-07-21 14:35:21.451236;541151750706;-34.61428904131994;-58.38384830742188;fotos\auto.jpg;hay un auto tapando la entrada de mi garage;audios\A1.wav
+2022-11-22 17:20:25.678941;541155385801;-34.606624442426885;-58.37891304304173;fotos\auto.jpg;este auto esta otra vez(!!!) estacionado en el cordon amarillo";audios\A1.wav
 2022-11-22 18:45:24.414562;541142388318;-34.60069007354357;-58.373505709954685;fotos\auto4c.jpg;buenas tardes, quiero reportar un auto estacionado en la senda peatonal";audios\A1.wav
 2022-11-22 22:15:30.256145;541102418684;-34.60257993332512;-58.39159452656946;fotos\auto4c.jpg;tirame un lorem;audios\A1.wav
 2022-11-22 22:05:29.289451;541154240888;-34.60256227128195;-58.39588606076554;fotos\auto4c.jpg;te tiro un lorem;audios\A1.wav
