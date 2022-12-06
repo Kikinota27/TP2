@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.image import imread
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
+from geopy.point import Point
 import os
 import folium
 import webbrowser
@@ -25,6 +26,9 @@ MESES: list = ["Enero", "Febrero", "Marzo", "Abril",
 
 # Detectar y escribir patente
 def detectar_patente(ruta_img: str)-> str:
+    """ Pre: requiere la ruta absoluta de la imágen a analizar como argumento
+        post: devuelve el número de patente en formato str
+    """
 
     img = cv2.imread(ruta_img,cv2.IMREAD_COLOR)
     img = cv2.resize(img, (600,400))
@@ -49,6 +53,8 @@ def detectar_patente(ruta_img: str)-> str:
     if screenCnt is None:
         detected = 0
         print ("No contour detected")
+        print(f"No se ha podido detectar la patente de la foto {ruta_img}.")
+        return "No detectado"
     else:
         detected = 1
 
@@ -66,18 +72,18 @@ def detectar_patente(ruta_img: str)-> str:
 
     text = pytesseract.image_to_string(Cropped, config='--psm 11')
     print("programming_fever's License Plate Recognition\n")
-    print("Detected license plate Number is:",text)
+    print("El número de patente detectado es: ",text)
     img = cv2.resize(img,(500,300))
     Cropped = cv2.resize(Cropped,(400,200))
-    cv2.imshow('car',img)
-    cv2.imshow('Cropped',Cropped)
+    # cv2.imshow('car',img)
+    # cv2.imshow('Cropped',Cropped)
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     return text
 
-# crear nuevo CSV
+
 def transcrpicion_audio(ruta_audio: str)->str:
     """
     Pre: Require la ruta absoluta de un audio en formato wav
@@ -98,21 +104,26 @@ def transcrpicion_audio(ruta_audio: str)->str:
 
     return transcripcion
 
-def leerArchivo(nom_arc:str,lista:list,separador:str):
+# Archivos
+def leerArchivo(nom_arc:str,separador:str)->list:
     """
-    Pre: Require el nombre del archivo como str, una lista vacia donde guardar los datos y caracter de serparacion como str
+    Pre: Require el nombre del archivo como str y el caracter de serparacion como str
     Post: Al ser un procedimiento no posee, guarda los datos leído del archivo en una lista vacía
     """
     try:
         file = open(nom_arc,'r',encoding = "UTF-8")
+        lista: list = list()
+
         for linea in file:
             registro = []
             linea = linea.strip()
             registro = linea.split(separador)
             lista.append(registro)
+            
         file.close()
     except IOError:
         print("Se producjo un error de entrada y salida del archivo")
+    return lista
 
 def crear_csv(reclamos_datos_nuevos: list)->None:
     """
@@ -122,9 +133,11 @@ def crear_csv(reclamos_datos_nuevos: list)->None:
     with open("reclamos_nuevo.csv", 'w', newline='', encoding="UTF-8") as reclamos:
         csv_writer = csv.writer(reclamos, delimiter=',', quotechar='"', quoting= csv.QUOTE_NONNUMERIC)
         csv_writer.writerow(["Timestamp", "Telefono", "Direccion", "Localidad", "Provincia", "Patente", "Descripcion texto", "Descripcion audio"])
+        
         for reclamo in reclamos_datos_nuevos:
             csv_writer.writerow(reclamo)
 
+# Geopy
 def coordenadasADireccion(lat:float,long:float)->list:
     """
     Pre: Requiere dos numero flotante, el primero sera la longitud, el segundo la latitud.
@@ -137,19 +150,20 @@ def coordenadasADireccion(lat:float,long:float)->list:
     ubicarl = ubicar.split(',')
     calle: str = str(ubicarl[1])+','+str(ubicarl[0])
     comunas: list = [' Comuna 1',' Comuna 2',' Comuna 3',' Comuna 4',' Comuna 5',' Comuna 6',' Comuna 8',' Comuna 9',' Comuna 10',' Comuna 11',' Comuna 12',' Comuna 13',' Comuna 14',' Comuna 15']
+    
     if ubicarl[4] in comunas: 
         localidad = ubicarl[4]
     elif ubicarl[5] in comunas:
         localidad = ubicarl[5]
     else:
         print("La direccion no pertenece la CABA")
+
     prov: str = 'CABA'
     datos: list = [calle,localidad,prov]
+
     return datos
-def reconocimiento_patente(path_img: str)->str:
-    pass
     
-def dentroDeLaDistancia(direcc1:list,direcc2:list,distan:int):
+def dentroDeLaDistancia(direcc1:list,direcc2:list,distan:int)->bool:
     """
     Pre: ingresas dos direcciones en forma de lista con dos elementos string, y el radio un int
     Post: retorna un bool que indica si las direcciones poseen una distancia menor o igual a la indicada en el radio
@@ -157,7 +171,7 @@ def dentroDeLaDistancia(direcc1:list,direcc2:list,distan:int):
     dist = geodesic(direcc1,direcc2).km
     esta_dentro_de_la_distancia: bool = dist<=distan
     return esta_dentro_de_la_distancia
-#Listar centro
+
 def dentroDelCuadrante(coord:list)->bool:
     """
     Pre:Requiere un lista con dos elementos str primero es latitud y el segundo es longitud
@@ -183,7 +197,6 @@ def dentroDelCuadrante(coord:list)->bool:
     division = (suma1+suma3)/(suma2+suma4)
     en_el_cuadrante: bool = division<=1.0
     return en_el_cuadrante
-    #robados
 
 def compararDatos(datos1:list,datos2:list)->list:
     """
@@ -191,12 +204,15 @@ def compararDatos(datos1:list,datos2:list)->list:
     Post: Devuelve una lista que posee los datos en comun que tiene la primera lista con la segunda.
     """
     elementos_en_comun:list = []
-    for x in range(len(datos1)):
-        if datos1[x][5] in datos2:
-            coincidentes = datos1[x][5]
+
+    for x in range(len(datos2)):
+        if datos2[x][5] in datos1:
+            coincidentes = datos2[x][5]
             elementos_en_comun.append(coincidentes)
+
     return elementos_en_comun
 
+# Mostrar resultados en pantalla
 def mostrarAlerta(pat:str,tiempo:str,ubicacion:list):
     """
     Pre: Requiete la patente como str, la fecha como str, y una lista con direccion, localidad, provincia
@@ -217,7 +233,9 @@ def infoAlerta(lista_robados:list,info_file:list):
     """
     fechas: list = []
     ubicaciones: list = []
+
     for i in range(len(info_file)):
+
         for j in range(len(lista_robados)):
             if info_file[i][5]==lista_robados[j]:
                 ubic: list = [info_file[i][2],info_file[i][3],info_file[i][4]]
@@ -225,21 +243,20 @@ def infoAlerta(lista_robados:list,info_file:list):
                 fecha = unix[0]
                 fechas.append(fecha)
                 ubicaciones.append(ubic)
+
     for i in range(len(lista_robados)):
         patente: str = lista_robados[i]
         time: str = fechas[i]
         ubicacion: list = ubicaciones[i]
         mostrarAlerta(patente,time,ubicacion)
-#mostrar foto y mapa
-def mostrarImg(ruta:str):
+
+def mostrarImg(rutai:str):
     """
     Pre: Requiere la ruta de la img a mostrar
     Post: Es un procedimiento que muestra en pantalle una imagen
     """
-    #archivo = 'prueba.jpg'
-    #directorio = os.getcwd()
-    #ruta = os.path.join(directorio, archivo)
-    img = mpimg.imread(ruta)
+    ruta = os.path.abspath(rutai)
+    img = imread(ruta)
     imgplot = plt.imshow(img)
     plt.show()
 
@@ -250,12 +267,6 @@ def mostrarMapa(coordenada:list,patente:str):
     """
     ubicacion: list = [float(coordenada[0]),float(coordenada[1])]
     mapa=folium.Map(location=ubicacion)
-    mapa.add_child(folium.Marker(location=ubicacion,popup=patente,icon=folium.Icon(color='green')))
-    mapa.save('mapa.html')
-    archivo = 'mapa.html'
-    directorio = os.getcwd()
-    ruta = os.path.join(directorio, archivo) # El archivo se crea automaticamente y se guarda en la misma carpeta del presente programa
-    webbrowser.open(ruta)
 
 def mostrarDatosPatente(archivo1:list,archivo2:list):
     time: str = ''
@@ -263,14 +274,17 @@ def mostrarDatosPatente(archivo1:list,archivo2:list):
     ruta_foto: str = ''
     coord: list = []
     patente: str = input("Ingrese la pantente a consultar: ")
+
     for line in archivo2:
         if patente in line:
             time = line[0]
             tel = line[1]
+
     for line in archivo1:
         if time in line and tel in line:
             ruta_foto = line[4]
             coord = [line[2],line[3]]
+
     print("Para el movil de patente: ",patente)
     print("Se encuentrar asociados: ")
     print("Su imagen: ")
@@ -278,13 +292,26 @@ def mostrarDatosPatente(archivo1:list,archivo2:list):
     print("Su mapa: ")
     mostrarMapa(coord,patente)
 
+def reclamosMensuales(datos: list)->list:
+    cantxmeses: list = []
+
+    for mes in range (1,13):
+        cantxmes: int = 0
+        for reclamo in datos:
+            if mes ==  int(reclamo[0][5:7]):
+                cantxmes += 1
+        cantxmeses.append(cantxmes)
+    return cantxmeses
+
+def graficoMetricas(cantxmeses: list, MESES:list):
+    fig, ax = plt.subplots()
+    ax.bar(MESES, cantxmeses)
+    plt.show()
+
 def main()->None:
-    datos_reclamos: list = []
+    datos_reclamos: list = leerArchivo(RECLAMOS,';')
+    pedido_captura: list = leerArchivo(CAPTURA,'\n')   
     datos_reclamos_nuevo: list = []
-    pedido_captura: list = []
-    
-    leerArchivo(RECLAMOS,datos_reclamos,';')
-    leerArchivo(CAPTURA,pedido_captura,'\n')
 
     print("Creando nuevo listado")
     print("Inicio de programa")
@@ -292,18 +319,18 @@ def main()->None:
 
     for reclamo in datos_reclamos:
         # (Timestamp, Teléfono_celular, coord_latitud, coord_long, ruta_foto, descripción texto,ruta_audio)
-        print(reclamo)
         if reclamo != datos_reclamos[0]:
             ubicacion: list = coordenadasADireccion(reclamo[2],reclamo[3])
-            print("Ruta auto: ", os.path.abspath(reclamo[4]))
             patente: str = detectar_patente(os.path.abspath(reclamo[4]))
             descripcion_audio: str = transcrpicion_audio(os.path.abspath(reclamo[6]))
             datos_reclamos_nuevo.append([reclamo[0],reclamo[1],ubicacion[0], ubicacion[1], ubicacion[2], patente, reclamo[5], descripcion_audio])
-            print(reclamo)
+    
     crear_csv(datos_reclamos_nuevo)
     print("Listando reclamos a 1 Km. del estadio River Plate ")
+
     for i in range(len(datos_reclamos)):
         linea: list = datos_reclamos[0]
+
         if linea != datos_reclamos[0]:
             coord: list = [linea[2],linea[3]]
             unix: list = linea[0].split(' ')
@@ -311,11 +338,15 @@ def main()->None:
             direcc: str = datos_reclamos_nuevo[i][2]
             prov: str = datos_reclamos_nuevo[i][4]
             cercano: bool = dentroDeLaDistancia(RIVER_LOC,coord,1)
+    
             if cercano:
                 print(f"Se realizó un reclamo para la patente {datos_reclamos_nuevo[i][5]} el día {fecha} en {direcc},{prov}")
+
     print("Listando reclamos a 1 Km. del estadio Boca Juniors")
+
     for i in range(len(datos_reclamos)):
         linea = datos_reclamos[0]
+
         if linea != datos_reclamos[0]:
             coord = [linea[2],linea[3]]
             unix= linea[0].split(' ')
@@ -323,39 +354,33 @@ def main()->None:
             direcc = datos_reclamos_nuevo[i][2]
             prov = datos_reclamos_nuevo[i][4]
             cercano = dentroDeLaDistancia(BOCA_LOC,coord,1)
+
             if cercano:
                 print(f"Se realizó un reclamo para la patente {datos_reclamos_nuevo[i][5]} el día {fecha} en {direcc},{prov}")
+
     print("Listando reclamos en el centro de la ciudad")
 
     for i in range(len(datos_reclamos)):
         linea = datos_reclamos[i]
+
         if linea != datos_reclamos[0]:
             coord = [linea[2],linea[3]]
             unix= linea[0].split(' ')
             fecha = unix[0]
             cuadrante: bool = dentroDelCuadrante(coord)
+
             if cuadrante:
                 print(f"Se realizó un reclamo para la patente{datos_reclamos_nuevo[i][5]} el día {fecha} en el centro de CABA")
 
     print("Alertas de patentes con pedidos de captura")
-    sospechosos: list = compararDatos(pedido_captura,datos_reclamos_nuevo) #Falta probar
-    infoAlerta(sospechosos,datos_reclamos_nuevo) #falta informacion para probar la funcion
+    sospechosos: list = compararDatos(pedido_captura,datos_reclamos_nuevo) 
+    infoAlerta(sospechosos,datos_reclamos_nuevo) 
     print("Ingresar una patente y obtener su imagen y ubicacion en un mapa")
-    mostrarDatosPatente(datos_reclamos,datos_reclamos_nuevo)#pendiente por comprobar que funciona
+    mostrarDatosPatente(datos_reclamos,datos_reclamos_nuevo)
     print("Generando grafico de reclamos mensuales")
 
-    cantxmeses: list = []
-
-    for mes in range (1,13):
-        cantxmes: int = 0
-        for reclamo in datos_reclamos_nuevo:
-            if mes ==  int(reclamo[0][5:7]):
-                cantxmes += 1
-        cantxmeses.append(cantxmes)
-
-    fig, ax = plt.subplots()
-    ax.bar(MESES, cantxmeses)
-    plt.show()
+    cantxmeses: list = reclamosMensuales(datos_reclamos_nuevo)
+    graficoMetricas(cantxmeses, MESES)
 
 main()
 
